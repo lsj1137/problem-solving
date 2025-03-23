@@ -7,17 +7,14 @@ def solution(friends, gifts):
     fIndex = {}
     for i in range(len(friends)):
         fIndex[friends[i]] = i
-    # print(fIndex)
 
     for g in gifts:
         a,b = g.split(' ')
         history[fIndex[a]][fIndex[b]] += 1
-    print(history)
     
     for i in range(len(friends)):
         fIndex[friends[i]] = sum(history[i]) - sum(row[i] for row in history)
         
-    print(fIndex)
     
     for i in range(len(friends)):
         for j in range(i+1, len(friends)):
@@ -29,8 +26,6 @@ def solution(friends, gifts):
                 result[i][j] += 1
             elif fIndex[friends[i]]<fIndex[friends[j]]:
                 result[j][i] += 1
-            
-    # print(result)
     
     answer = max(sum(row) for row in result)
     return answer
