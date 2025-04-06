@@ -1,3 +1,4 @@
+# 노드 연결 후 직접 이동하면서 모든 경우의 수 계산(브루트 포스)
 class Node:
     value = 0
     child = None
@@ -78,7 +79,7 @@ shortStart2.shortcut.findNode(24).setChild(center)
 shortStart3.shortcut.findNode(26).setChild(center)
 
 moves = list(map(int, input().split()))
-scenarios = [[[start], 0]] # 경우의 수 저장용 리스트
+scenarios = [[[start], 0]] # 경우의 수 저장용 리스트 (말들의 위치, 그때 점수)
 
 for move in moves:
     newScenarios = []
