@@ -1,6 +1,6 @@
 # [level 2] 유사 칸토어 비트열 - 148652 
 
-[문제 링크](https://school.programmers.co.kr/learn/courses/30/lessons/148652#) 
+[문제 링크](https://school.programmers.co.kr/learn/courses/30/lessons/148652) 
 
 ### 성능 요약
 
@@ -16,7 +16,7 @@
 
 ### 제출 일자
 
-2025년 06월 03일 18:06:10
+2025년 06월 03일 18:09:08
 
 ### 문제 설명
 
