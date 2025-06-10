@@ -16,7 +16,6 @@ function solution(book_time) {
             check[i] += 1;
         }
     }
-    // console.log(db);
     answer = Math.max(...check);
     return answer;
 }
