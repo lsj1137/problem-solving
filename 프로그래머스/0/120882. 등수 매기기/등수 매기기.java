@@ -7,7 +7,7 @@ class Solution {
         for (int i=0; i<score.length; i++) {
             avgs[i] = (double)(score[i][0] + score[i][1])/(double)2;
         }
-        Arrays.sort(avgs, Comparator.reverseOrder());
+        Arrays.sort(avgs, (a,b)->Double.compare(b,a));
         int index = 0;
         for (int[] person: score) {
             int rank = 0;
