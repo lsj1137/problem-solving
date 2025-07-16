@@ -1,0 +1,2 @@
+-- 코드를 입력하세요
+SELECT t1.TITLE, t1.BOARD_ID, t2.REPLY_ID, t2.WRITER_ID, t2.CONTENTS, DATE_FORMAT(t2.CREATED_DATE,'%Y-%m-%d') as CREATED_DATE from USED_GOODS_BOARD as t1, USED_GOODS_REPLY as t2 where t1.board_id = t2.board_id and t1.created_date like '2022-10%' order by t2.created_date asc, t1.title asc
