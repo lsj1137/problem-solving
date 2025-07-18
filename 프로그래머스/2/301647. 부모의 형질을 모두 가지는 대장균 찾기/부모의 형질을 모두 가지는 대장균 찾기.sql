@@ -1,0 +1,2 @@
+-- 코드를 작성해주세요
+select ID, GENOTYPE, (SELECT GENOTYPE from ECOLI_DATA as t2 where t2.ID=t1.PARENT_ID) as PARENT_GENOTYPE from ECOLI_DATA as t1 where GENOTYPE & (SELECT GENOTYPE from ECOLI_DATA as t2 where t2.ID=t1.PARENT_ID) = (SELECT GENOTYPE from ECOLI_DATA as t2 where t2.ID=t1.PARENT_ID)
