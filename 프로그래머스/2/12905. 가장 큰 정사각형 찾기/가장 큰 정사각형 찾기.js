@@ -1,3 +1,4 @@
+// 2차원 누적합, 부분합
 function check(l, board) {
     let result = true;
     for (let x=1; x<board.length-l+1; x++) {
