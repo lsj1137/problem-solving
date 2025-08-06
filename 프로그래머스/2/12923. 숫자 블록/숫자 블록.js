@@ -5,12 +5,11 @@ function getGD(n){
     let result = 1;
     for (let i=2; i<=n**0.5; i++) {
         if (n%i===0) {
-            let c = i;
+            result = i;
             if (n/i<=10000000) {
                 result = n/i;
                 break;
             }
-            result = result > c ? result:c;
         }
     }
     return result;
