@@ -1,0 +1,143 @@
+def breakfast(N, belief):
+    # 모든 학생 신앙심 +1
+    for i in range(N):
+        for j in range(N):
+            belief[i][j] += 1
+    return
+
+def lunch(N, table, belief):
+    # 인접(상하좌우)한 학생들과 신봉 음식이 완전히 같으면 그룹 형성
+    # 대표자 한 명 선정
+    # 대표자 기준 : 신앙심 > 행번호 > 열번호
+    # 대표자는 신앙심 +(그룹원수-1) 나머지 -1
+    groups = []
+    dx = [-1, 0, 1, 0]
+    dy = [0, 1, 0, -1]
+    checked = [[False for _ in range(N)] for _ in range(N)]
+    for i in range(N):
+        for j in range(N):
+            que = []
+            newGroup = []
+            curF = table[i][j]
+            if checked[i][j]:
+                continue
+            checked[i][j] = True
+            que.append([i,j])
+            while len(que)>0:
+                x,y = que.pop()
+                newGroup.append([belief[x][y], x, y])
+                for k in range(4):
+                    nx = x+dx[k]
+                    ny = y+dy[k]
+                    if nx>-1 and ny>-1 and nx<N and ny<N and not checked[nx][ny] and table[nx][ny]==curF:
+                        checked[nx][ny] = True
+                        que.append([nx,ny])
+            newGroup.sort(key= lambda x:(-x[0], x[1], x[2]))
+            for l, person in enumerate(newGroup):
+                if l==0:
+                    person[0] += len(newGroup)-1
+                    belief[person[1]][person[2]] += len(newGroup)-1
+                else:
+                    person[0] -= 1
+                    belief[person[1]][person[2]] -= 1
+            groups.append([curF, newGroup])
+    return groups
+
+def dinner(N, groups, table, belief):
+    # 대표자가 신앙 전파
+    # 단일음식 > 이중 조합 > 삼중 조합 순서
+    # 같은 순서일 경우 기준
+    # 대표자 신앙심 > 행번호 > 열번호
+    groups.sort(key=lambda x:(len(x[0]), -x[1][0][0], x[1][0][1], x[1][0][2]))
+    # print(groups)
+    # 대표자는 신앙심(B)을 1 남기고 나머지를 간절함(x)으로 바꿔 전파
+    captains = [[group[1][0][1], group[1][0][2], group[1][0][0]%4, group[1][0][0]-1, group[0]] for group in groups] # 위치, 방향, 간절함, 글자
+    
+    # 방향은 B를 4로 나눈 나머지 (0:위, 1:아래, 2:왼, 3:오)
+    dx = [-1, 1, 0, 0]
+    dy = [0, 0, -1, 1]
+    # 한 칸씩 이동하면서 전파 (나가거나 간절함 0 되면 끝,신봉 음식 같으면 스킵)
+    # 전파 대상 신앙심(y)
+    # x>y: 강한 전파 = 전파자 신봉음식과 동일음식 신봉, 전파자 간절함 -(y+1), 전파 대상 신앙심 +1
+    # x<=y: 약한 전파 = 기존 음식 + 전파자 기본 음식 신봉, 전파자 간절함 0, 전파 대상 신앙심 +x
+    isDefend = [[False] * N for _ in range(N)]
+    for captain in captains:
+        cx, cy, cd, x, food = captain
+        if isDefend[cx][cy]:
+            continue
+        belief[cx][cy] = 1
+        while True:
+            cx += dx[cd]
+            cy += dy[cd]
+            if x<=0 or cx<0 or cy<0 or cx>N-1 or cy>N-1:
+                break
+            if table[cx][cy]==food:
+                continue
+            isDefend[cx][cy] = True
+            y = belief[cx][cy]
+            if x>y:
+                x -= y+1
+                table[cx][cy] = food
+                belief[cx][cy] += 1
+            else:
+                table[cx][cy] = mixFood(table[cx][cy], food)
+                belief[cx][cy] += x
+                x = 0
+    # 다른 음식 대표자에게 전파 받으면 당일에 전파 안함. 추가 전파 받기는 가능
+
+    return
+
+def mixFood(a,b):
+    newFood = set([])
+    for c in a:
+        newFood.add(c)
+    for c in b:
+        newFood.add(c)
+    return ''.join(sorted(list(newFood)))
+
+def countBelief(N, table, belief):
+    beliefSum = [0, 0, 0, 0, 0, 0, 0]
+    for i in range(N):
+        for j in range(N):
+            if table[i][j]=='CMT':
+                beliefSum[0]+=belief[i][j]
+            elif table[i][j]=='CT':
+                beliefSum[1]+=belief[i][j]
+            elif table[i][j]=='MT':
+                beliefSum[2]+=belief[i][j]
+            elif table[i][j]=='CM':
+                beliefSum[3]+=belief[i][j]
+            elif table[i][j]=='M':
+                beliefSum[4]+=belief[i][j]
+            elif table[i][j]=='C':
+                beliefSum[5]+=belief[i][j]
+            elif table[i][j]=='T':
+                beliefSum[6]+=belief[i][j]
+    print(*beliefSum)
+    return
+
+def print2DArray(arr):
+    for line in arr:
+        print(line)
+
+# 매일 저녁 이후 민초우, 민초, 민우, 초우, 우, 초, 민 순으로 신봉자들 신앙심 총합 출력
+N,T = map(int, input().split())
+table = [list(input()) for _ in range(N)]
+belief = [list(map(int,input().split())) for _ in range(N)]
+
+for t in range(T):
+    breakfast(N, belief)
+    # print('ab')
+    # print2DArray(table)
+    # print2DArray(belief)
+    groups = lunch(N, table, belief)
+    # if t==4: 
+    #     print('al')
+    #     print2DArray(table)
+    #     print2DArray(belief)
+    dinner(N, groups, table, belief)
+    # if t==4: 
+    #     print('ad')
+    #     print2DArray(table)
+    #     print2DArray(belief)
+    countBelief(N, table, belief)
