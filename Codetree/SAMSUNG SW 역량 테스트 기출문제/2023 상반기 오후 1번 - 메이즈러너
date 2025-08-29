@@ -1,0 +1,143 @@
+class Person:
+    def __init__(self, x, y):
+        self.x, self.y = x, y
+
+    def __str__(self):
+        return f"Person({self.x=}, {self.y=})"
+
+class Wall:
+    def __init__(self, x, y, power):
+        self.x, self.y, self.power = x, y, power
+
+    def __str__(self):
+        return f"Wall({self.x=}, {self.y=}, {self.power=})"
+
+class Square:
+    def __init__(self, l, x, y):
+        self.l, self.x, self.y = l, x, y
+
+    def is_in(self, x, y):
+        return self.x<=x<self.x+self.l and self.y<=y<self.y+self.l
+
+    def rotated_x(self, y):
+        return y - self.y + self.x
+
+    def rotated_y(self, x):
+        return (self.y + self.l - 1) - (x - self.x)
+
+    def __str__(self):
+        return f"Square({self.l=}, {self.x=}, {self.y=})"
+
+dx = [-1, 1, 0, 0]
+dy = [0, 0, -1, 1]
+
+total_move = 0
+
+def calDist(position, goal):
+    return abs(goal[0]-position[0]) + abs(goal[1]-position[1])
+
+def move(N, runners, walls, goal):
+    global total_move
+    wall_arr = [[False] * (N) for _ in range(N)]
+    for wall in walls:
+        wall_arr[wall.x][wall.y] = True
+
+    newRunners = []
+    for r in runners:
+        curDist = calDist([r.x, r.y], goal)
+        for i in range(4):
+            nx = r.x + dx[i]
+            ny = r.y + dy[i]
+            if nx>-1 and ny>-1 and nx<N and ny<N and not wall_arr[nx][ny] and curDist > calDist([nx,ny], goal):
+                r.x = nx
+                r.y = ny
+                total_move += 1
+                break
+        if r.x!=goal[0] or r.y!=goal[1]:
+            newRunners.append(r)
+    return newRunners
+
+
+def is_better_square(my, your):
+    if my.l != your.l:
+        return my.l > your.l
+    if my.x != your.x:
+        return my.x > your.x
+    if my.y != your.y:
+        return my.y > your.y
+    return False
+
+
+def find_square(N, runners, goal):
+    my = Square(N, 0, 0)
+    goalX, goalY = goal[0], goal[1]
+
+    for runner in runners:
+        min_x, max_x = min(runner.x, goalX), max(runner.x, goalX)
+        min_y, max_y = min(runner.y, goalY), max(runner.y, goalY)
+
+        r = max(max_x - min_x + 1, max_y - min_y + 1)
+        
+        i, j = max(0, max_x - r + 1), max(0, max_y - r + 1)
+
+        your = Square(r, i, j)
+        if is_better_square(my, your):
+            my = your
+
+    return my
+
+def rotate_square(square, runners, walls, goal):
+    if square.is_in(goal[0], goal[1]):
+        goal[0], goal[1] = square.rotated_x(goal[1]),square.rotated_y(goal[0])
+
+    for runner in runners:
+        if square.is_in(runner.x, runner.y):
+            runner.x, runner.y = square.rotated_x(runner.y), square.rotated_y(runner.x)
+
+    newWalls = []
+    for wall in walls:
+        if square.is_in(wall.x, wall.y):
+            wall.power -= 1
+            if wall.power>0:
+                wall.x, wall.y = square.rotated_x(wall.y), square.rotated_y(wall.x)
+                newWalls.append(wall)
+        else:
+            newWalls.append(wall)
+    return newWalls
+
+def print2(instArr):
+    for inst in instArr:
+        print(str(inst))
+
+
+N,M,K = map(int,input().split())
+walls = []
+runners = []
+
+for i in range(N):
+    line = list(map(int,input().split()))
+    for j in range(N):
+        if line[j]>0:
+            walls.append(Wall(i,j,line[j]))
+
+for i in range(M):
+    x,y = map(lambda n:int(n)-1, input().split())
+    runners.append(Person(x,y))
+
+goal = list(map(lambda n:int(n)-1,input().split()))
+
+for k in range(K):
+    runners = move(N, runners, walls, goal)
+    # if k>2:
+    #     print2(runners)
+    if len(runners)==0:
+        break
+    targetSquare = find_square(N, runners, goal)
+    # if k>2:
+    #     print(targetSquare)
+    walls = rotate_square(targetSquare, runners, walls, goal)
+    # if k>2:
+    #     print2(walls)
+
+print(total_move)
+print(goal[0]+1, goal[1]+1)
