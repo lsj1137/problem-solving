@@ -1,0 +1,122 @@
+from collections import deque
+
+class Knight:
+    def __init__(self,i,r,c,h,w,k):
+        self.index = i
+        self.bf_x, self.bf_y = [r-1], [c-1]
+        self.x, self.y = r-1, c-1
+        self.w, self.h = w, h
+        self.hp = k
+        self.dmg = 0
+    
+    def __str__(self):
+        return f'Knight: {self.index=} {self.x=}, {self.y=}, {self.h=}, {self.w=}, {self.hp=}'
+
+    def getAllArea(self):
+        arr = []
+        for i in range(self.x, self.x+self.h):
+            for j in range(self.y, self.y+self.w):
+                arr.append((i,j))
+        return arr
+
+    def is_in(self,x,y):
+        return self.x<=x<self.x+self.h and self.y<=y<self.y+self.w
+
+    def checkTrap(self, isStarter, trap):
+        trapX, trapY = trap.x, trap.y
+        if isStarter:
+            return
+        if self.is_in(trapX, trapY):
+            self.dmg += 1
+            self.hp -= 1
+        return
+
+    def canMove(self, d):
+        nx, ny = self.x + dx[d], self.y + dy[d]
+        for i in range(nx, nx+self.h):
+            for j in range(ny, ny+self.w):
+                if i<0 or j<0 or i>L-1 or j>L-1 or board[i][j]==2:
+                    return False
+        return True
+
+    def move(self, d):
+        self.bf_x.append(self.x)
+        self.bf_y.append(self.y)
+        self.x, self.y = self.x + dx[d], self.y + dy[d]
+        return
+
+    def rewind(self):
+        self.x, self.y = self.bf_x.pop(), self.bf_y.pop()
+        return
+    
+class Trap:
+    def __init__(self, x,y):
+        self.x, self.y = x, y
+
+    def __str__(self):
+        return f'Trap: {self.x=}, {self.y=}'
+
+def findIthKnight(index):
+    for k in knights:
+        if k.index==index:
+            return k
+    return None
+
+def refreshKnights(knights):
+    newKnights = []
+    for k in knights:
+        if k.hp>0:
+            newKnights.append(k)
+    knights = newKnights
+    return knights
+
+L, N, Q = map(int,input().split())
+board = [list(map(int,input().split())) for _ in range(L)]
+traps = []
+for i in range(L):
+    for j in range(L):
+        if board[i][j]==1:
+            traps.append(Trap(i,j))
+knights = [Knight(n+1,*map(int,input().split())) for n in range(N)]
+order = [list(map(int,input().split())) for _ in range(Q)]
+
+dx = [-1, 0, 1, 0]
+dy = [0, 1, 0, -1]
+
+total_damage = 0
+
+for o in order:
+    i, d = o
+    starter = findIthKnight(i)
+    if starter==None:
+        continue
+    que = deque([starter])
+    moved = []
+    isMoved = True
+    while len(que)>0:
+        movingKnight = que.popleft()
+        if movingKnight.canMove(d):
+            movingKnight.move(d)
+            moved.append(movingKnight)
+            area = movingKnight.getAllArea()
+            for k in knights:
+                if k.index==movingKnight.index:
+                    continue
+                for spot in area:
+                    if k.is_in(spot[0], spot[1]):
+                        que.append(k)
+                        break
+        else:
+            isMoved = False
+            for k in moved:
+                k.rewind()
+            break
+    if isMoved:
+        for k in moved:
+            for trap in traps:
+                k.checkTrap(k.index==starter.index, trap)
+        knights = refreshKnights(knights)
+
+for k in knights:
+    total_damage += k.dmg
+print(total_damage)
