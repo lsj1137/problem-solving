@@ -1,0 +1,114 @@
+# 링크드 리스트로 해결했지만, 일반 리스트+사라진 집 확인용 boolean 리스트 조합으로 풀어도 됨.
+
+class LinkedList:
+    def __init__(self):
+        self.root = None
+        self.leaf = None
+        self.nextIndex = 1
+
+    def addNode(self, n):
+        parentNode = self.leaf
+        newNode = Node(self.nextIndex, n, parentNode, None)
+        if parentNode != None:
+            parentNode.child = newNode
+        else:
+            self.root = newNode
+        self.leaf = newNode
+        self.nextIndex += 1
+        return
+
+    def getNode(self, i):
+        node = None
+        if i>self.nextIndex-i:
+            node = self.leaf
+            while node.index != i:
+                node = node.parent
+        else:
+            node = self.root
+            while node.index != i:
+                node = node.child
+        return node
+    
+    def deleteNode(self, i):
+        selectedNode = self.getNode(i)
+        if selectedNode==self.root:
+            self.root = selectedNode.child
+        elif selectedNode==self.leaf:
+            self.leaf = selectedNode.parent
+        parent = selectedNode.parent
+        child = selectedNode.child
+        if parent!=None:
+            parent.child = child
+        if child!=None:
+            child.parent = parent
+        return
+
+    def __str__(self):
+        arr = []
+        node = self.root
+        while node!=None and node.child != None:
+            arr.append(str(node.child))
+            node = node.child
+        return str(arr)
+
+class Node:
+    def __init__(self, i, v, p, c):
+        self.index = i
+        self.value = v
+        self.parent = p
+        self.child = c
+
+    def __str__(self):
+        return f"Node {self.index=} {self.value=}"
+
+def initVillage(homes):
+    for h in homes:
+        village.addNode(int(h))
+    return
+
+def buildHome(n):
+    village.addNode(n)
+    return
+
+def breakHome(n):
+    village.deleteNode(n)
+    return
+
+def observe(r):
+    lowerBound, upperBound = 0, 1000000000
+    minimumTime = 0
+    while lowerBound<=upperBound:
+        midTime = (lowerBound+upperBound)//2
+        antCount = 0
+        node = village.root
+        lastValue = -1000000000
+        while node != None:
+            curValue = node.value
+            if curValue - lastValue > midTime:
+                lastValue = curValue
+                antCount += 1
+            node = node.child
+        if antCount<=r:
+            minimumTime = midTime
+            upperBound = midTime - 1
+        else:
+            lowerBound = midTime + 1
+    return minimumTime
+
+
+Q = int(input())
+village = LinkedList()
+
+for _ in range(Q):
+    order = input().split()
+    if order[0]=='100':
+        initVillage(order[2:])
+    elif order[0]=='200':
+        p = int(order[1])
+        buildHome(p)
+    elif order[0]=='300':
+        q = int(order[1])
+        breakHome(q)
+    else:
+        r = int(order[1])
+        print(observe(r))
