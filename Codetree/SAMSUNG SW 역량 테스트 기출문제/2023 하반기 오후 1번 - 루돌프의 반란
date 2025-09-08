@@ -1,0 +1,163 @@
+dxy = [(-1,0),(-1,1),(0,1),(1,1),(1,0),(1,-1),(0,-1),(-1,-1)]
+
+class Santa:
+    def __init__(self, i, x, y):
+        self.index = i
+        self.x, self.y = x, y
+        self.stun = 0
+        self.colDir = 0
+        self.score = 0
+        self.out = False
+        self.dist = 0
+    
+    def __str__(self):
+        return f'St:{self.index=},x={self.x},y={self.y}'
+
+    def move(self):
+        if self.stun>0:
+            return
+        cx, cy = self.x, self.y
+        result = [cx, cy]
+        shortestPath = distArr[cx][cy]
+        for i in range(0, 8, 2):
+            dx, dy = dxy[i]
+            nx = cx + dx
+            ny = cy + dy
+            if isIn(nx,ny) and not isOtherSantaIn(nx,ny):
+                path = calDist(nx, ny, rudolph.x, rudolph.y)
+                if shortestPath>path:
+                    shortestPath = path
+                    result = [nx,ny]
+                    self.colDir = i
+        self.x, self.y = result
+        return
+        
+    def collide(self, colDir, power, isFirstCollide):
+        self.colDir = colDir
+        if isFirstCollide:
+            self.score += power
+        dx, dy = dxy[colDir]
+        nx = self.x + dx * power
+        ny = self.y + dy * power
+        if not isIn(nx, ny):
+            self.out = True
+        else:
+            for s in santas:
+                if s.x==nx and s.y==ny:
+                    s.collide(colDir, 1, False)
+        self.x, self.y = nx, ny
+        return
+
+
+class Rudolph:
+    def __init__(self, x, y):
+        self.x, self.y = x, y
+        self.colDir = 0
+    
+    def __str__(self):
+        return f'Rd:{self.x=},{self.y=}'
+
+    def moveTo(self, santa):
+        cx, cy = self.x, self.y
+        shortestPath = calDist(santa.x, santa.y, cx, cy)
+        result = [cx,cy]
+        for i in range(8):
+            dx, dy = dxy[i]
+            nx = cx + dx
+            ny = cy + dy
+            if isIn(nx,ny):
+                path = calDist(santa.x, santa.y, nx, ny)
+                if shortestPath>path:
+                    shortestPath = path
+                    result = [nx,ny]
+                    self.colDir = i
+        self.x, self.y = result
+        return
+
+    def checkCollide1(self):
+        for s in santas:
+            # 3 충돌
+            if not s.out and s.x==self.x and s.y==self.y:
+                # 4 상호작용
+                s.collide(self.colDir, ruldolphPower, True)
+                # 5 기절
+                s.stun = 2
+        return
+
+    def checkCollide2(self, santa):
+        if not santa.out and santa.x==self.x and santa.y==self.y:
+            santa.collide((santa.colDir+4)%8, santaPower, True)
+            santa.stun = 2
+        return
+
+def calDist(x1, y1, x2, y2):
+    return (x1-x2)**2 + (y1-y2)**2
+
+def isIn(x,y):
+    return -1<x<N and -1<y<N
+
+def isOtherSantaIn(x,y):
+    for s in santas:
+        if not s.out and s.x==x and s.y==y:
+            return True
+    return False
+
+
+def refreshArr(sortMode):
+    global distArr
+    distArr = [[0]*N for _ in range(N)]
+    for i in range(N):
+        for j in range(N):
+            distArr[i][j] = calDist(rudolph.x, rudolph.y, i, j)
+    for s in santas:
+        if not s.out:
+            s.dist = distArr[s.x][s.y]
+    sortSantas(sortMode)
+    return
+
+def sortSantas(mode):
+    if mode==0: # 루돌프 거리 기준
+        santas.sort(key=lambda s:(s.dist, -s.x, -s.y))
+    elif mode==1: # 산타 번호 기준
+        santas.sort(key=lambda s:s.index)
+    return
+
+def addScore():
+    for s in santas:
+        if not s.out:
+            s.score += 1
+    return
+
+
+def reduceStun():
+    for s in santas:
+        if s.stun>0:
+            s.stun -= 1
+    return
+
+N, M, P, ruldolphPower, santaPower = map(int, input().split())
+rudolph = Rudolph(*map(lambda x: int(x)-1,input().split()))
+santas = [Santa(*map(lambda x: int(x)-1,input().split())) for _ in range(P)]
+distArr = [[0]*N for _ in range(N)]
+refreshArr(0)
+
+
+for _ in range(M):
+    # 1 루돌프 턴
+    for s in santas:
+        if not s.out:
+            rudolph.moveTo(s)
+            rudolph.checkCollide1()
+            break
+    refreshArr(1)
+    # 2 산타 턴
+    for s in santas:
+        if not s.out:
+            s.move()
+            rudolph.checkCollide2(s)
+    addScore()
+    reduceStun()
+    sortSantas(1)
+    refreshArr(0)
+sortSantas(1)
+print(*[s.score for s in santas])
