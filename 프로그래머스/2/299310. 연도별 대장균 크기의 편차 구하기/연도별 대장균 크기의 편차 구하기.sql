@@ -1,0 +1,2 @@
+-- 코드를 작성해주세요
+select year(DIFFERENTIATION_DATE) as YEAR, (select max(SIZE_OF_COLONY) from ECOLI_DATA as t2 where year(t1.DIFFERENTIATION_DATE)=year(t2.DIFFERENTIATION_DATE) group by year(DIFFERENTIATION_DATE)) - SIZE_OF_COLONY as YEAR_DEV, ID from ECOLI_DATA as t1 order by year asc, YEAR_DEV asc
