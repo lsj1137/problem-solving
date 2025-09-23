@@ -1,0 +1,98 @@
+from collections import deque
+
+dxy = [(-1,0),(0,-1),(0,1),(1,0)]
+
+def findClosestBase(x,y):
+    checked = [[False]*n for _ in range(n)]
+    que = deque([[x,y,0]])
+    checked[x][y] = True
+    result = []
+    while len(que)>0:
+        cx, cy, dist = que.popleft()
+        if board[cx][cy]==1:
+            if len(result)==0:
+                result.append((cx,cy,dist))
+            else:
+                if result[-1][2]>=dist:
+                    result.append((cx,cy,dist))
+                else:
+                    break
+        for i in range(4):
+            dx, dy = dxy[i]
+            nx, ny = cx + dx, cy + dy
+            if isIn(nx, ny) and not checked[nx][ny] and board[nx][ny]!=-1:
+                checked[nx][ny] = True
+                que.append([nx,ny,dist+1])
+    result.sort(key=lambda x:(x[2], x[0], x[1]))
+    return result[0]
+
+def move(fromP, toP):
+    fromX, fromY = fromP
+    toX, toY = toP
+    checked = [[False]*n for _ in range(n)]
+    que = deque([[toX,toY,0]])
+    checked[toX][toY] = True
+    distArr = [[0]*n for _ in range(n)]
+    while len(que)>0:
+        cx, cy, dist = que.popleft()
+        distArr[cx][cy] = dist
+        for i in range(4):
+            dx, dy = dxy[i]
+            nx, ny = cx + dx, cy + dy
+            if nx==fromX and ny==fromY:
+                checked[nx][ny] = True
+                que.append([nx,ny,dist+1])
+            elif isIn(nx, ny) and board[nx][ny]==-1:
+                checked[nx][ny] = True
+                distArr[nx][ny] = float('inf')
+            elif isIn(nx, ny) and not checked[nx][ny]:
+                checked[nx][ny] = True
+                que.append([nx,ny,dist+1])
+    minDist = float('inf')
+    result = (0, 0)
+    for i in range(4):
+        dx, dy = dxy[i]
+        nx, ny = fromX + dx, fromY + dy
+        if isIn(nx,ny) and minDist>distArr[nx][ny]:
+            minDist = distArr[nx][ny]
+            result = (nx, ny)
+    return result
+
+def isIn(x,y):
+    return -1<x<n and -1<y<n
+
+
+n,m = map(int, input().split())
+board = [list(map(int, input().split())) for _ in range(n)]
+stores = [tuple(map(lambda x:int(x)-1, input().split())) for _ in range(m)]
+people = []
+
+time = 0
+arrive = [0]*m
+while True:
+    # 1 사람 이동
+    for i, p in enumerate(people):
+        if p==stores[i]:
+            continue
+        people[i] = move(p, stores[i])
+        
+    # 2 편의점 도착
+    for i in range(len(people)):
+        if people[i]==stores[i]:
+            arrive[i] = 1
+            storeX, storeY = stores[i]
+            board[storeX][storeY] = -1
+
+    # 3 베이스 캠프 지정
+    if time<m:
+        storeX, storeY = stores[time]
+        baseX, baseY, baseDist = findClosestBase(storeX, storeY)
+        people.append((baseX, baseY))
+        board[baseX][baseY] = -1
+
+    # 4 시간 증가
+    time += 1
+    if sum(arrive) == m:
+        break
+
+print(time)
