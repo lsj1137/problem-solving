@@ -1,0 +1,217 @@
+from collections import deque
+
+dxy = [(0,1), (0,-1), (1,0), (-1,0)]
+
+class TimeWall:
+    def __init__(self, walls):
+        self.x, self.y = 0, 0
+        self.walls = walls
+        self.curFace = 4
+        # machineX, machineY
+        self.mx, self.my = 0, 0
+        for i in range(M):
+            for j in range(M):
+                if self.walls[4][i][j]==2:
+                    self.mx, self.my = i, j
+        self.exit = [0,0]
+
+    def findExit(self):
+        find = False
+        for i in range(M):
+            if space[self.x-1][self.y+i] == 0:
+                find = True
+                self.exit = [self.x-1, self.y+i]
+        if not find:
+            for i in range(M):
+                if space[self.x+i][self.y-1] == 0:
+                    find = True
+                    self.exit = [self.x+i, self.y-1]
+        if not find:
+            for i in range(M):
+                if space[self.x+i][self.y+M] == 0:
+                    find = True
+                    self.exit = [self.x+i, self.y+M]
+        if not find:
+            for i in range(M):
+                if space[self.x+M][self.y+i] == 0:
+                    find = True
+                    self.exit = [self.x+M, self.y+i]
+        return
+
+
+    def __str__(self):
+        return f'{self.curFace} / {self.x}, {self.y} / {self.exit}'
+
+    def strFace(self, f):
+        if f==0:
+            return '동'
+        elif f==1:
+            return '서'
+        elif f==2:
+            return '남'
+        elif f==3:
+            return '북'
+        elif f==4:
+            return '상'
+
+    def bfs(self):
+        que = deque([[self.mx, self.my, self.curFace, 0]])
+        checked = [[[False]*M for _ in range(M)] for _ in range(5)]
+        checked[self.curFace][self.mx][self.my] = True
+        result = float('inf')
+        while len(que)>0:
+            cx, cy, face, dist = que.popleft()
+            if face==5:
+                if cx==self.exit[0] and cy==self.exit[1]:
+                    result = dist
+                    break
+                else:
+                    continue
+            for i in range(4):
+                dx, dy = dxy[i]
+                nx, ny, nface = cx + dx, cy + dy, face
+                if not self.isInSmall(nx,ny):
+                    nx, ny, nface = self.changeFace(face, i, cx, cy)
+                if nface==5 or (not checked[nface][nx][ny] and self.walls[nface][nx][ny]==0):
+                    if nface<5:
+                        checked[nface][nx][ny] = True
+                    que.append([nx, ny, nface, dist+1])
+        return result
+
+    def changeFace(self,curFace, d, mx, my):
+        # 위
+        if curFace==4:
+            if d==0:
+                return [0, M-1-mx, 0]
+            elif d==1:
+                return [0, mx, 1]
+            elif d==2:
+                return [0, my, 2]
+            elif d==3:
+                return [0, M-1-my, 3]
+        # 동
+        elif curFace==0:
+            if d==0:
+                return [mx, 0, 3]
+            elif d==1:
+                return [mx, M-1, 2]
+            elif d==2:
+                return [self.x+(M-1 - my), self.y+M, 5]
+            elif d==3:
+                return [M-1-my, M-1, 4]
+        # 서
+        elif curFace==1:
+            if d==0:
+                return [mx, 0, 2]
+            elif d==1:
+                return [mx, M-1, 3]
+            elif d==2:
+                return [self.x+my, self.y-1, 5]
+            elif d==3:
+                return [my, 0, 4]
+        # 남
+        elif curFace==2:
+            if d==0:
+                return [mx, 0, 0]
+            elif d==1:
+                return [mx, M-1, 1]
+            elif d==2:
+                return [self.x+M, self.y+my, 5]
+            elif d==3:
+                return [M-1, my, 4]
+        # 북
+        elif curFace==3:
+            if d==0:
+                return [mx, 0, 1]
+            elif d==1:
+                return [mx, M-1, 0]
+            elif d==2:
+                return [self.x-1, self.y+(M-1 - my), 5]
+            elif d==3:
+                return [0, M-1-my, 4]
+        return
+
+    def isInSmall(self, x, y):
+        return -1<x<M and -1<y<M
+
+def isInBig(x, y):
+    return -1<x<N and -1<y<N
+
+def diffuse():
+    global anomaly
+    for i, an in enumerate(anomaly):
+        if time % an[3] == 0:
+            cx, cy, d = an[0], an[1], an[2]
+            dx, dy = dxy[d]
+            nx, ny = cx + dx, cy + dy
+            if isInBig(nx,ny) and space[nx][ny]==0:
+                space[nx][ny] = 1
+                anomaly[i][0] = nx
+                anomaly[i][1] = ny
+    return
+
+def bfs():
+    result = float('inf')
+    que = deque([[x,y,0]])
+    checked = [[False]*N for _ in range(N)]
+    checked[x][y] = True
+    while len(que)>0:
+        cx, cy, dist = que.popleft()
+        if cx==exit[0] and cy==exit[1]:
+            result = dist
+            break
+        for dx, dy in dxy:
+            nx, ny = cx + dx, cy + dy
+            if isInBig(nx,ny) and not checked[nx][ny] and (space[nx][ny]==0 or space[nx][ny]==4):
+                checked[nx][ny] = True
+                que.append([nx,ny,dist+1])
+    return result
+
+
+N, M, F = map(int,input().split())
+space = [list(map(int,input().split())) for _ in range(N)]
+timeWall = TimeWall([[list(map(int,input().split())) for _ in range(M)] for _ in range(5)])
+anomaly = [list(map(int,input().split())) for _ in range(F)]
+for an in anomaly:
+    space[an[0]][an[1]] = 1
+time = 0
+result = 0
+exit = [0, 0]
+
+found = False
+for i in range(N):
+    for j in range(N):
+        if not found and space[i][j] == 3:
+            timeWall.x, timeWall.y = i, j
+            found = True
+        if space[i][j] == 4:
+            exit = [i,j]
+
+timeWall.findExit()
+x, y = timeWall.exit
+
+wallEscapeTime = timeWall.bfs()
+if wallEscapeTime==float('inf'):
+    result = -1
+else:
+    while time < wallEscapeTime:
+        time += 1
+        diffuse()
+
+    while True:
+        # 최단 시간 계산
+        shortest = bfs()
+        # 최단 시간 <= 현재 시간이면 종료
+        if wallEscapeTime + shortest<=time:
+            result = wallEscapeTime + shortest
+            break
+        # 최단 시간 == 무한이면 불가능
+        elif shortest==float('inf'):
+            result = -1
+            break
+        # 시간 증가
+        time += 1
+        # 이상 현상 확산
+        diffuse()
+
+print(result)
