@@ -1,0 +1,9 @@
+-- 코드를 작성해주세요
+SELECT
+    t1.ID,
+    COUNT(t2.PARENT_ID) AS CHILD_COUNT
+FROM 
+    ECOLI_DATA as t1
+LEFT JOIN
+    ECOLI_DATA as t2 ON t2.PARENT_ID=t1.ID
+GROUP BY t1.ID
