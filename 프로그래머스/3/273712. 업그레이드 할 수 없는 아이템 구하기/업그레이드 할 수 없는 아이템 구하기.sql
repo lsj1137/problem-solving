@@ -1,0 +1,17 @@
+WITH parents as (
+SELECT DISTINCT
+    PARENT_ITEM_ID as id
+FROM
+    ITEM_TREE
+)
+
+SELECT
+    ITEM_ID,
+    ITEM_NAME,
+    RARITY
+FROM
+    ITEM_INFO
+WHERE
+    ITEM_ID NOT IN (SELECT ID from parents WHERE ID is not null)
+ORDER BY
+    ITEM_ID desc
