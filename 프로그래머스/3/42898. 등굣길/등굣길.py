@@ -1,5 +1,3 @@
-# from collections import deque
-
 def dp(board, sx, sy, ex, ey):
     if sx==ex and sy==ey:
         return 1
