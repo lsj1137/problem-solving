@@ -1,8 +1,15 @@
-SELECT *
-from places
+select
+    id, name, host_id
+from
+    places
 where 
-HOST_ID in (SELECT HOST_ID from
-(SELECT HOST_ID, COUNT(ID) as cnt
-from places
-group by HOST_ID) t1
-where t1.cnt>1)
+    host_id in (
+        select 
+            host_id
+        from places
+        group by
+            host_id
+        having
+            count(id)>1)
+order by
+    id asc
