@@ -5,14 +5,13 @@ input = sys.stdin.readline
 N = int(input())
 max_q = []
 for i in range(N):
-    nl = list(map(lambda x:(-int(x), int(x)), input().split()))
-    heapq.heapify(nl)
+    nl = list(map(int, input().split()))
     if i==0:
-        max_q = [x[1] for x in nl]
+        heapq.heapify(nl)
+        max_q = nl
     else:
-        while max_q[0]<nl[0][1]:
-            a = heapq.heappop(nl)
-            b = heapq.heappop(max_q)
-            heapq.heappush(nl, (-b,b))
-            heapq.heappush(max_q, a[1])
+        for n in nl:
+            if n>max_q[0]:
+                heapq.heappop(max_q)
+                heapq.heappush(max_q, n)
 print(max_q[0])
